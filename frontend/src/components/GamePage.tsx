@@ -21,7 +21,6 @@ export function GamePage() {
   const [balance, setBalance] = useState(0);
   const [currentBets, setCurrentBets] = useState<Bet[]>([]);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [bigWinAnimation, setBigWinAnimation] = useState<{ show: boolean; amount: number }>({ show: false, amount: 0 });
   const [bigLoseAnimation, setBigLoseAnimation] = useState<{ show: boolean; amount: number }>({ show: false, amount: 0 });
   const previousGameIdRef = useRef<number | null>(null);
