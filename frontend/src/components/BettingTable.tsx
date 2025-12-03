@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { BetType, GameState, Bet } from '../types/index';
 import { getNumberColor } from '../types/index';
 import api from '../services/api';
@@ -27,9 +28,31 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
   const [cancellingBetId, setCancellingBetId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { adhdMode } = useADHD();
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const iframeLoadedRef = useRef(false);
 
   const canBet = gameState?.status === 'BETTING_OPEN';
   const showSubwaySurfers = adhdMode && (gameState?.status === 'BETTING_CLOSED' || gameState?.status === 'SPINNING');
+
+  // Create portal container for persistent iframe
+  useEffect(() => {
+    if (adhdMode && !portalContainer) {
+      let container = document.getElementById('subway-surfers-portal');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'subway-surfers-portal';
+        document.body.appendChild(container);
+      }
+      setPortalContainer(container);
+    }
+  }, [adhdMode, portalContainer]);
+
+  // Mark iframe as loaded when ADHD mode is enabled
+  useEffect(() => {
+    if (adhdMode) {
+      iframeLoadedRef.current = true;
+    }
+  }, [adhdMode]);
 
   const placeBet = useCallback(async (betType: BetType, betValue: string) => {
     if (!canBet || loading) return;
@@ -88,38 +111,52 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
 
   const chipAmounts = [1, 5, 10, 25, 50, 100, 500];
 
+  // Persistent Subway Surfers Portal - always rendered when ADHD mode is on
+  const subwaySurfersPortal = adhdMode && portalContainer ? createPortal(
+    <div className={`subway-surfers-portal-content ${showSubwaySurfers ? 'visible' : 'hidden'}`}>
+      <iframe
+        src="https://www.youtube.com/embed/zZ7AimPACzc?autoplay=1&mute=0&start=60&controls=0&loop=1&playlist=zZ7AimPACzc"
+        title="Subway Surfers Gameplay"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className="subway-video-portal"
+      />
+    </div>,
+    portalContainer
+  ) : null;
+
   // Subway Surfers gameplay video for ADHD mode
   if (showSubwaySurfers) {
     return (
-      <div className="betting-table subway-surfers-mode">
-        <div className="betting-header">
-          <h2>🚇 ADHD ZONE 🏃‍♂️</h2>
-          <span className="adhd-badge">Wheel is spinning!</span>
-        </div>
-        <div className="subway-container">
-          <iframe
-            src="https://www.youtube.com/embed/zZ7AimPACzc?autoplay=1&mute=0&start=60&controls=0&loop=1&playlist=zZ7AimPACzc"
-            title="Subway Surfers Gameplay"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="subway-video"
-          />
-          <div className="subway-overlay">
-            <span className="spinning-text">🎰 Waiting for result... 🎰</span>
+      <>
+        {subwaySurfersPortal}
+        <div className="betting-table subway-surfers-mode">
+          <div className="betting-header">
+            <h2>🚇 ADHD ZONE 🏃‍♂️</h2>
+            <span className="adhd-badge">Wheel is spinning!</span>
           </div>
-        </div>
-        {totalBets > 0 && (
-          <div className="current-bet-summary">
-            <span>💰 Your bets: ${totalBets}</span>
-            <span>🎯 Potential: ${potentialWin}</span>
+          <div className="subway-container">
+            {/* Video is rendered in portal, this is just a placeholder that shows it */}
+            <div className="subway-video-placeholder" />
+            <div className="subway-overlay">
+              <span className="spinning-text">🎰 Waiting for result... 🎰</span>
+            </div>
           </div>
-        )}
-      </div>
+          {totalBets > 0 && (
+            <div className="current-bet-summary">
+              <span>💰 Your bets: ${totalBets}</span>
+              <span>🎯 Potential: ${potentialWin}</span>
+            </div>
+          )}
+        </div>
+      </>
     );
   }
 
   return (
+    <>
+      {subwaySurfersPortal}
     <div className="betting-table">
       <div className="betting-header">
         <h2>🎲 Betting Table</h2>
@@ -296,6 +333,7 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
         </div>
       )}
     </div>
+    </>
   );
 }
 

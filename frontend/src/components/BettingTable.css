@@ -503,11 +503,12 @@
 .subway-container {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 aspect ratio */
+  padding-top: 177%; /* 9:16 aspect ratio for vertical video */
   border-radius: 12px;
   overflow: hidden;
   border: 3px solid #d4af37;
   box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+  max-height: 70vh;
 }
 
 .subway-video {
@@ -556,4 +557,54 @@
   border-radius: 10px;
   color: #d4af37;
   font-weight: bold;
+}
+
+/* Portal styles for persistent Subway Surfers video */
+#subway-surfers-portal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.subway-surfers-portal-content {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 350px;
+  height: 620px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 4px solid #d4af37;
+  box-shadow: 0 0 50px rgba(212, 175, 55, 0.6), 0 0 100px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto;
+  background: #000;
+}
+
+.subway-surfers-portal-content.visible {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.subway-surfers-portal-content.hidden {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.8);
+  pointer-events: none;
+}
+
+.subway-video-portal {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.subway-video-placeholder {
+  width: 100%;
+  height: 100%;
+  background: transparent;
 }
