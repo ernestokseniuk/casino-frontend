@@ -26,6 +26,28 @@ export function GamePage() {
   const previousGameIdRef = useRef<number | null>(null);
   const winCheckDoneRef = useRef<boolean>(false);
   const pendingBetsRef = useRef<Bet[]>([]);
+  const lastCountdownRef = useRef<number | null>(null);
+  const ambientIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Start background music and ambient sounds on mount
+  useEffect(() => {
+    // Start background music
+    soundManager.startBackgroundMusic();
+    
+    // Random ambient casino sounds every 3-8 seconds
+    ambientIntervalRef.current = setInterval(() => {
+      if (Math.random() > 0.4) { // 60% chance to play ambient
+        soundManager.playAmbient();
+      }
+    }, 3000 + Math.random() * 5000);
+    
+    return () => {
+      soundManager.stopBackgroundMusic();
+      if (ambientIntervalRef.current) {
+        clearInterval(ambientIntervalRef.current);
+      }
+    };
+  }, []);
 
   const loadBalance = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -71,10 +93,18 @@ export function GamePage() {
       if (previousGameIdRef.current !== gameState.gameId) {
         previousGameIdRef.current = gameState.gameId;
         winCheckDoneRef.current = false;
+        lastCountdownRef.current = null;
         // Refresh balance when new game starts (in case we missed bet results)
         loadBalance();
       }
       loadCurrentBets();
+      
+      // Play countdown sounds during betting - ADHD stimulation!
+      const remainingTime = gameState.remainingSeconds;
+      if (remainingTime !== undefined && remainingTime !== lastCountdownRef.current && remainingTime <= 10 && remainingTime > 0) {
+        lastCountdownRef.current = remainingTime;
+        soundManager.playCountdown(remainingTime);
+      }
     }
     
     // When betting closes, make sure we have the latest bets stored
@@ -84,6 +114,13 @@ export function GamePage() {
         pendingBetsRef.current = currentBets;
         console.log('BETTING_CLOSED - stored bets:', currentBets);
       }
+      // Play dramatic betting closed sound
+      soundManager.playBettingClosed();
+    }
+    
+    // Play spinning sound when wheel starts
+    if (gameState?.status === 'SPINNING') {
+      soundManager.playSpinning();
     }
     
     // Check for SETTLED or FINISHED status
@@ -127,9 +164,10 @@ export function GamePage() {
               if (betValue === 'HIGH') return num >= 19 && num <= 36 ? bet.amount * 2 : 0;
               return 0;
             case 'DOZEN':
-              if (betValue === '1ST') return num >= 1 && num <= 12 ? bet.amount * 3 : 0;
-              if (betValue === '2ND') return num >= 13 && num <= 24 ? bet.amount * 3 : 0;
-              if (betValue === '3RD') return num >= 25 && num <= 36 ? bet.amount * 3 : 0;
+              // betValue can be '1', '2', '3' or '1ST', '2ND', '3RD'
+              if (betValue === '1' || betValue === '1ST') return num >= 1 && num <= 12 ? bet.amount * 3 : 0;
+              if (betValue === '2' || betValue === '2ND') return num >= 13 && num <= 24 ? bet.amount * 3 : 0;
+              if (betValue === '3' || betValue === '3RD') return num >= 25 && num <= 36 ? bet.amount * 3 : 0;
               return 0;
             case 'COLUMN':
               if (betValue === '1') return num > 0 && num % 3 === 1 ? bet.amount * 3 : 0;

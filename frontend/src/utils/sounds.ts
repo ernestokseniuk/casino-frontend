@@ -1,8 +1,11 @@
-// Sound effects for the casino - classic "cyk cyk cyk" roulette sounds
+// Sound effects for the casino - ADHD MEGA STIMULATION MODE!
 class SoundManager {
   private audioContext: AudioContext | null = null;
   private enabled: boolean = true;
   private volume: number = 0.6;
+  private backgroundMusicInterval: ReturnType<typeof setInterval> | null = null;
+  private ambientInterval: ReturnType<typeof setInterval> | null = null;
+  private isBackgroundPlaying: boolean = false;
 
   constructor() {
     // AudioContext will be created on first user interaction
@@ -13,6 +16,326 @@ class SoundManager {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     return this.audioContext;
+  }
+
+  // Start background casino ambient music
+  startBackgroundMusic() {
+    if (this.isBackgroundPlaying || !this.enabled) return;
+    this.isBackgroundPlaying = true;
+    
+    const ctx = this.getAudioContext();
+    
+    // Looping chill casino vibe
+    const playBackgroundLoop = () => {
+      if (!this.isBackgroundPlaying || !this.enabled) return;
+      
+      const now = ctx.currentTime;
+      const vol = this.volume * 0.08; // Very quiet background
+      
+      // Smooth pad chord (Am7)
+      const padNotes = [220, 261, 330, 392]; // A3, C4, E4, G4
+      padNotes.forEach(freq => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(vol, now + 0.5);
+        gain.gain.setValueAtTime(vol, now + 3);
+        gain.gain.linearRampToValueAtTime(0, now + 4);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 4.5);
+      });
+      
+      // Subtle sparkles
+      for (let i = 0; i < 3; i++) {
+        const sparkle = ctx.createOscillator();
+        const sparkleGain = ctx.createGain();
+        const sparkleTime = now + 1 + Math.random() * 2;
+        
+        sparkle.type = 'sine';
+        sparkle.frequency.setValueAtTime(2000 + Math.random() * 2000, sparkleTime);
+        
+        sparkleGain.gain.setValueAtTime(0, sparkleTime);
+        sparkleGain.gain.linearRampToValueAtTime(vol * 0.3, sparkleTime + 0.01);
+        sparkleGain.gain.exponentialRampToValueAtTime(0.001, sparkleTime + 0.15);
+        
+        sparkle.connect(sparkleGain);
+        sparkleGain.connect(ctx.destination);
+        
+        sparkle.start(sparkleTime);
+        sparkle.stop(sparkleTime + 0.2);
+      }
+    };
+    
+    // Play immediately and loop
+    playBackgroundLoop();
+    this.backgroundMusicInterval = setInterval(playBackgroundLoop, 4000);
+    
+    // Casino ambient sounds (slot machines, chatter simulation)
+    const playAmbient = () => {
+      if (!this.isBackgroundPlaying || !this.enabled) return;
+      
+      const now = ctx.currentTime;
+      const vol = this.volume * 0.03;
+      
+      // Random slot machine jingle in distance
+      if (Math.random() > 0.6) {
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.08);
+          
+          gain.gain.setValueAtTime(vol, now + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.1);
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 0.15);
+        });
+      }
+      
+      // Distant chip sounds
+      if (Math.random() > 0.7) {
+        const chipOsc = ctx.createOscillator();
+        const chipGain = ctx.createGain();
+        
+        chipOsc.type = 'triangle';
+        chipOsc.frequency.setValueAtTime(600 + Math.random() * 400, now);
+        
+        chipGain.gain.setValueAtTime(vol * 0.5, now);
+        chipGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        
+        chipOsc.connect(chipGain);
+        chipGain.connect(ctx.destination);
+        
+        chipOsc.start(now);
+        chipOsc.stop(now + 0.1);
+      }
+    };
+    
+    this.ambientInterval = setInterval(playAmbient, 2000);
+  }
+
+  stopBackgroundMusic() {
+    this.isBackgroundPlaying = false;
+    if (this.backgroundMusicInterval) {
+      clearInterval(this.backgroundMusicInterval);
+      this.backgroundMusicInterval = null;
+    }
+    if (this.ambientInterval) {
+      clearInterval(this.ambientInterval);
+      this.ambientInterval = null;
+    }
+  }
+
+  // Play random ambient casino sounds
+  playAmbient() {
+    if (!this.enabled) return;
+    
+    const ctx = this.getAudioContext();
+    const now = ctx.currentTime;
+    const vol = this.volume * 0.05;
+    
+    const soundType = Math.random();
+    
+    if (soundType < 0.3) {
+      // Slot machine spin sound
+      for (let i = 0; i < 8; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(100 + Math.random() * 100, now + i * 0.05);
+        
+        gain.gain.setValueAtTime(vol * 0.5, now + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.03);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(now + i * 0.05);
+        osc.stop(now + i * 0.05 + 0.05);
+      }
+    } else if (soundType < 0.5) {
+      // Coin drop sounds
+      const notes = [4000, 3800, 3500, 3200];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.05);
+        
+        gain.gain.setValueAtTime(vol, now + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(now + i * 0.05);
+        osc.stop(now + i * 0.05 + 0.15);
+      });
+    } else if (soundType < 0.7) {
+      // Distant cheer
+      const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i++) {
+        noiseData[i] = Math.random() * 2 - 1;
+      }
+      
+      const noiseSource = ctx.createBufferSource();
+      const noiseGain = ctx.createGain();
+      const noiseFilter = ctx.createBiquadFilter();
+      
+      noiseSource.buffer = noiseBuffer;
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.setValueAtTime(2000, now);
+      noiseFilter.Q.setValueAtTime(1, now);
+      
+      noiseGain.gain.setValueAtTime(vol * 0.3, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      
+      noiseSource.start(now);
+    } else {
+      // Random chip stacking
+      for (let i = 0; i < 3; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800 + Math.random() * 600, now + i * 0.08);
+        
+        gain.gain.setValueAtTime(vol, now + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.05);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.08);
+      }
+    }
+  }
+
+  // Play dramatic countdown sounds - more intense as time runs out!
+  playCountdown(secondsLeft: number) {
+    if (!this.enabled) return;
+    
+    const ctx = this.getAudioContext();
+    const now = ctx.currentTime;
+    
+    // Intensity increases as time decreases
+    const intensity = 1 - (secondsLeft / 10);
+    const vol = this.volume * (0.2 + intensity * 0.3);
+    
+    // Base tick - gets more intense
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = intensity > 0.7 ? 'square' : 'sine';
+    osc.frequency.setValueAtTime(800 + intensity * 800, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+    
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start(now);
+    osc.stop(now + 0.2);
+    
+    // Add tension drone on last 5 seconds
+    if (secondsLeft <= 5) {
+      const droneOsc = ctx.createOscillator();
+      const droneGain = ctx.createGain();
+      const droneFilter = ctx.createBiquadFilter();
+      
+      droneOsc.type = 'sawtooth';
+      droneOsc.frequency.setValueAtTime(100 + (5 - secondsLeft) * 30, now);
+      
+      droneFilter.type = 'lowpass';
+      droneFilter.frequency.setValueAtTime(300 + (5 - secondsLeft) * 100, now);
+      
+      droneGain.gain.setValueAtTime(vol * 0.3, now);
+      droneGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      
+      droneOsc.connect(droneFilter);
+      droneFilter.connect(droneGain);
+      droneGain.connect(ctx.destination);
+      
+      droneOsc.start(now);
+      droneOsc.stop(now + 0.9);
+    }
+    
+    // Heartbeat on last 3 seconds
+    if (secondsLeft <= 3) {
+      const heart1 = ctx.createOscillator();
+      const heart2 = ctx.createOscillator();
+      const heartGain = ctx.createGain();
+      
+      heart1.type = 'sine';
+      heart2.type = 'sine';
+      heart1.frequency.setValueAtTime(60, now);
+      heart2.frequency.setValueAtTime(60, now + 0.15);
+      
+      heartGain.gain.setValueAtTime(vol * 0.5, now);
+      heartGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      heartGain.gain.setValueAtTime(vol * 0.3, now + 0.15);
+      heartGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      
+      heart1.connect(heartGain);
+      heart2.connect(heartGain);
+      heartGain.connect(ctx.destination);
+      
+      heart1.start(now);
+      heart2.start(now + 0.15);
+      heart1.stop(now + 0.12);
+      heart2.stop(now + 0.27);
+    }
+    
+    // ALARM on last second!
+    if (secondsLeft === 1) {
+      const alarm = ctx.createOscillator();
+      const alarmGain = ctx.createGain();
+      
+      alarm.type = 'square';
+      alarm.frequency.setValueAtTime(880, now);
+      alarm.frequency.setValueAtTime(660, now + 0.1);
+      alarm.frequency.setValueAtTime(880, now + 0.2);
+      alarm.frequency.setValueAtTime(660, now + 0.3);
+      
+      alarmGain.gain.setValueAtTime(vol * 0.6, now);
+      alarmGain.gain.setValueAtTime(vol * 0.6, now + 0.4);
+      alarmGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      
+      alarm.connect(alarmGain);
+      alarmGain.connect(ctx.destination);
+      
+      alarm.start(now);
+      alarm.stop(now + 0.55);
+    }
   }
 
   // Play a single "cyk" click sound - like ball hitting a metal divider
