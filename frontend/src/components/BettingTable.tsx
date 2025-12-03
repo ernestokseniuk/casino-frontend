@@ -98,7 +98,7 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
         </div>
         <div className="subway-container">
           <iframe
-            src="https://www.youtube.com/embed/9n7LiMKbELU?autoplay=1&mute=0&start=60&controls=0&loop=1&playlist=9n7LiMKbELU"
+            src="https://www.youtube.com/embed/zZ7AimPACzc?autoplay=1&mute=0&start=60&controls=0&loop=1&playlist=zZ7AimPACzc"
             title="Subway Surfers Gameplay"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
