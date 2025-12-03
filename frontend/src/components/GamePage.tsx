@@ -146,7 +146,7 @@ export function GamePage() {
         
         console.log('Win check result', { totalWin, netResult, totalBetAmount });
         
-        // Delay animation to sync with roulette result display (after 3s wheel result)
+        // Delay animation significantly to wait for wheel to fully stop and result to show
         setTimeout(() => {
           console.log('Showing animation', { netResult, totalWin, totalBetAmount });
           if (netResult > 0) {
@@ -161,7 +161,7 @@ export function GamePage() {
           loadBalance();
           // Clear pending bets after showing animation
           pendingBetsRef.current = [];
-        }, 3500);
+        }, 8000);
       }
     }
   }, [gameState?.status, gameState?.gameId, gameState?.winningNumber, loadCurrentBets, loadBalance, isAuthenticated, currentBets]);
