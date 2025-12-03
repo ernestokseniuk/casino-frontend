@@ -241,13 +241,6 @@ export function GamePage() {
         </div>
       </header>
 
-      {/* Notification */}
-      {notification && (
-        <div className={`notification ${notification.type}`}>
-          {notification.message}
-        </div>
-      )}
-
       {/* WebSocket Error */}
       {wsError && (
         <div className="ws-error">
