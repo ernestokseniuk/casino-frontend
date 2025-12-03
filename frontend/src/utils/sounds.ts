@@ -6,6 +6,7 @@ class SoundManager {
   private backgroundMusicInterval: ReturnType<typeof setInterval> | null = null;
   private ambientInterval: ReturnType<typeof setInterval> | null = null;
   private isBackgroundPlaying: boolean = false;
+  private backgroundAudio: HTMLAudioElement | null = null;
 
   constructor() {
     // AudioContext will be created on first user interaction
@@ -18,123 +19,41 @@ class SoundManager {
     return this.audioContext;
   }
 
-  // Start background casino ambient music
+  // Start background hip-hop music from URL
   startBackgroundMusic() {
     if (this.isBackgroundPlaying || !this.enabled) return;
     this.isBackgroundPlaying = true;
     
-    const ctx = this.getAudioContext();
+    // Use a chill lo-fi hip hop beat (royalty free)
+    // Using a public domain / creative commons beat
+    const musicUrl = 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3';
     
-    // Looping chill casino vibe
-    const playBackgroundLoop = () => {
-      if (!this.isBackgroundPlaying || !this.enabled) return;
-      
-      const now = ctx.currentTime;
-      const vol = this.volume * 0.08; // Very quiet background
-      
-      // Smooth pad chord (Am7)
-      const padNotes = [220, 261, 330, 392]; // A3, C4, E4, G4
-      padNotes.forEach(freq => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
-        
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now);
-        
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(800, now);
-        
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(vol, now + 0.5);
-        gain.gain.setValueAtTime(vol, now + 3);
-        gain.gain.linearRampToValueAtTime(0, now + 4);
-        
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start(now);
-        osc.stop(now + 4.5);
-      });
-      
-      // Subtle sparkles
-      for (let i = 0; i < 3; i++) {
-        const sparkle = ctx.createOscillator();
-        const sparkleGain = ctx.createGain();
-        const sparkleTime = now + 1 + Math.random() * 2;
-        
-        sparkle.type = 'sine';
-        sparkle.frequency.setValueAtTime(2000 + Math.random() * 2000, sparkleTime);
-        
-        sparkleGain.gain.setValueAtTime(0, sparkleTime);
-        sparkleGain.gain.linearRampToValueAtTime(vol * 0.3, sparkleTime + 0.01);
-        sparkleGain.gain.exponentialRampToValueAtTime(0.001, sparkleTime + 0.15);
-        
-        sparkle.connect(sparkleGain);
-        sparkleGain.connect(ctx.destination);
-        
-        sparkle.start(sparkleTime);
-        sparkle.stop(sparkleTime + 0.2);
-      }
-    };
+    this.backgroundAudio = new Audio(musicUrl);
+    this.backgroundAudio.loop = true;
+    this.backgroundAudio.volume = this.volume * 0.15; // Quiet background
+    this.backgroundAudio.crossOrigin = 'anonymous';
     
-    // Play immediately and loop
-    playBackgroundLoop();
-    this.backgroundMusicInterval = setInterval(playBackgroundLoop, 4000);
-    
-    // Casino ambient sounds (slot machines, chatter simulation)
-    const playAmbient = () => {
-      if (!this.isBackgroundPlaying || !this.enabled) return;
-      
-      const now = ctx.currentTime;
-      const vol = this.volume * 0.03;
-      
-      // Random slot machine jingle in distance
-      if (Math.random() > 0.6) {
-        const notes = [523, 659, 784, 1047];
-        notes.forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now + i * 0.08);
-          
-          gain.gain.setValueAtTime(vol, now + i * 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.1);
-          
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          
-          osc.start(now + i * 0.08);
-          osc.stop(now + i * 0.08 + 0.15);
-        });
-      }
-      
-      // Distant chip sounds
-      if (Math.random() > 0.7) {
-        const chipOsc = ctx.createOscillator();
-        const chipGain = ctx.createGain();
-        
-        chipOsc.type = 'triangle';
-        chipOsc.frequency.setValueAtTime(600 + Math.random() * 400, now);
-        
-        chipGain.gain.setValueAtTime(vol * 0.5, now);
-        chipGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-        
-        chipOsc.connect(chipGain);
-        chipGain.connect(ctx.destination);
-        
-        chipOsc.start(now);
-        chipOsc.stop(now + 0.1);
-      }
-    };
-    
-    this.ambientInterval = setInterval(playAmbient, 2000);
+    // Try to play (may fail due to autoplay policy)
+    this.backgroundAudio.play().catch(e => {
+      console.log('Background music autoplay blocked, will start on user interaction:', e);
+      // Add click listener to start music on first interaction
+      const startOnClick = () => {
+        if (this.backgroundAudio && this.isBackgroundPlaying) {
+          this.backgroundAudio.play().catch(() => {});
+        }
+        document.removeEventListener('click', startOnClick);
+      };
+      document.addEventListener('click', startOnClick);
+    });
   }
 
   stopBackgroundMusic() {
     this.isBackgroundPlaying = false;
+    if (this.backgroundAudio) {
+      this.backgroundAudio.pause();
+      this.backgroundAudio.src = '';
+      this.backgroundAudio = null;
+    }
     if (this.backgroundMusicInterval) {
       clearInterval(this.backgroundMusicInterval);
       this.backgroundMusicInterval = null;
