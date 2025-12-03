@@ -12,6 +12,7 @@ import AuthModal from './AuthModal';
 import BigWinAnimation from './BigWinAnimation';
 import BigLoseAnimation from './BigLoseAnimation';
 import Chat from './Chat';
+import VolumeControl from './VolumeControl';
 import './GamePage.css';
 
 export function GamePage() {
@@ -261,6 +262,7 @@ export function GamePage() {
               Reconnect
             </button>
           )}
+          <VolumeControl />
         </div>
 
         <div className="header-user">

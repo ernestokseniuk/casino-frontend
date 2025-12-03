@@ -3,6 +3,7 @@ import type { BetType, GameState, Bet } from '../types/index';
 import { getNumberColor } from '../types/index';
 import api from '../services/api';
 import soundManager from '../utils/sounds';
+import { useADHD } from '../context/ADHDContext';
 import './BettingTable.css';
 
 interface BettingTableProps {
@@ -25,8 +26,10 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
   const [loading, setLoading] = useState(false);
   const [cancellingBetId, setCancellingBetId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { adhdMode } = useADHD();
 
   const canBet = gameState?.status === 'BETTING_OPEN';
+  const showSubwaySurfers = adhdMode && (gameState?.status === 'BETTING_CLOSED' || gameState?.status === 'SPINNING');
 
   const placeBet = useCallback(async (betType: BetType, betValue: string) => {
     if (!canBet || loading) return;
@@ -84,6 +87,37 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
   const potentialWin = currentBets.reduce((sum, b) => sum + b.potentialPayout, 0);
 
   const chipAmounts = [1, 5, 10, 25, 50, 100, 500];
+
+  // Subway Surfers gameplay video for ADHD mode
+  if (showSubwaySurfers) {
+    return (
+      <div className="betting-table subway-surfers-mode">
+        <div className="betting-header">
+          <h2>🚇 ADHD ZONE 🏃‍♂️</h2>
+          <span className="adhd-badge">Wheel is spinning!</span>
+        </div>
+        <div className="subway-container">
+          <iframe
+            src="https://www.youtube.com/embed/hDgXKJnlnfw?autoplay=1&mute=0&start=30&controls=0&loop=1"
+            title="Subway Surfers Gameplay"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="subway-video"
+          />
+          <div className="subway-overlay">
+            <span className="spinning-text">🎰 Waiting for result... 🎰</span>
+          </div>
+        </div>
+        {totalBets > 0 && (
+          <div className="current-bet-summary">
+            <span>💰 Your bets: ${totalBets}</span>
+            <span>🎯 Potential: ${potentialWin}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="betting-table">

@@ -1,11 +1,14 @@
 import { AuthProvider } from './context/AuthContext'
+import { ADHDProvider } from './context/ADHDContext'
 import GamePage from './components/GamePage'
 import './App.css'
 
 function App() {
   return (
     <AuthProvider>
-      <GamePage />
+      <ADHDProvider>
+        <GamePage />
+      </ADHDProvider>
     </AuthProvider>
   )
 }

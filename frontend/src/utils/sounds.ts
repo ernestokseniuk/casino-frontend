@@ -2,7 +2,8 @@
 class SoundManager {
   private audioContext: AudioContext | null = null;
   private enabled: boolean = true;
-  private volume: number = 0.6;
+  private musicVolume: number = 0.3;
+  private effectsVolume: number = 0.6;
   private backgroundMusicInterval: ReturnType<typeof setInterval> | null = null;
   private ambientInterval: ReturnType<typeof setInterval> | null = null;
   private isBackgroundPlaying: boolean = false;
@@ -10,6 +11,11 @@ class SoundManager {
 
   constructor() {
     // AudioContext will be created on first user interaction
+    // Load saved volumes from localStorage
+    const savedMusicVol = localStorage.getItem('casino_music_volume');
+    const savedEffectsVol = localStorage.getItem('casino_effects_volume');
+    if (savedMusicVol) this.musicVolume = parseFloat(savedMusicVol);
+    if (savedEffectsVol) this.effectsVolume = parseFloat(savedEffectsVol);
   }
 
   private getAudioContext(): AudioContext {
@@ -17,6 +23,30 @@ class SoundManager {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     return this.audioContext;
+  }
+
+  // Getters for current volumes
+  getMusicVolume(): number {
+    return this.musicVolume;
+  }
+
+  getEffectsVolume(): number {
+    return this.effectsVolume;
+  }
+
+  // Set music volume (0-1)
+  setMusicVolume(volume: number) {
+    this.musicVolume = Math.max(0, Math.min(1, volume));
+    localStorage.setItem('casino_music_volume', this.musicVolume.toString());
+    if (this.backgroundAudio) {
+      this.backgroundAudio.volume = this.musicVolume * 0.5;
+    }
+  }
+
+  // Set effects volume (0-1)
+  setEffectsVolume(volume: number) {
+    this.effectsVolume = Math.max(0, Math.min(1, volume));
+    localStorage.setItem('casino_effects_volume', this.effectsVolume.toString());
   }
 
   // Start background hip-hop music from URL
@@ -30,7 +60,7 @@ class SoundManager {
     
     this.backgroundAudio = new Audio(musicUrl);
     this.backgroundAudio.loop = true;
-    this.backgroundAudio.volume = this.volume * 0.15; // Quiet background
+    this.backgroundAudio.volume = this.musicVolume * 0.5;
     this.backgroundAudio.crossOrigin = 'anonymous';
     
     // Try to play (may fail due to autoplay policy)
@@ -70,7 +100,7 @@ class SoundManager {
     
     const ctx = this.getAudioContext();
     const now = ctx.currentTime;
-    const vol = this.volume * 0.05;
+    const vol = this.effectsVolume * 0.05;
     
     const soundType = Math.random();
     
@@ -166,7 +196,7 @@ class SoundManager {
     
     // Intensity increases as time decreases
     const intensity = 1 - (secondsLeft / 10);
-    const vol = this.volume * (0.2 + intensity * 0.3);
+    const vol = this.effectsVolume * (0.2 + intensity * 0.3);
     
     // Base tick - gets more intense
     const osc = ctx.createOscillator();
@@ -281,7 +311,7 @@ class SoundManager {
     
     // Very short envelope - sharp click
     gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(this.volume * volume * 0.4, now + 0.002);
+    gainNode.gain.linearRampToValueAtTime(this.effectsVolume * volume * 0.4, now + 0.002);
     gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
     
     oscillator.connect(filter);
@@ -298,7 +328,7 @@ class SoundManager {
     
     const ctx = this.getAudioContext();
     const now = ctx.currentTime;
-    const vol = this.volume;
+    const vol = this.effectsVolume;
     
     // === EPIC AIRHORN x5 ===
     for (let i = 0; i < 5; i++) {
@@ -776,8 +806,8 @@ class SoundManager {
       filter.Q.setValueAtTime(3, now + note.time);
       
       gain.gain.setValueAtTime(0, now + note.time);
-      gain.gain.linearRampToValueAtTime(this.volume * 0.25, now + note.time + 0.03);
-      gain.gain.setValueAtTime(this.volume * 0.2, now + note.time + note.duration * 0.7);
+      gain.gain.linearRampToValueAtTime(this.effectsVolume * 0.25, now + note.time + 0.03);
+      gain.gain.setValueAtTime(this.effectsVolume * 0.2, now + note.time + note.duration * 0.7);
       gain.gain.exponentialRampToValueAtTime(0.001, now + note.time + note.duration);
       
       osc.connect(filter);
@@ -796,7 +826,7 @@ class SoundManager {
     rumbleOsc.frequency.setValueAtTime(50, now);
     rumbleOsc.frequency.exponentialRampToValueAtTime(30, now + 2);
     
-    rumbleGain.gain.setValueAtTime(this.volume * 0.15, now);
+    rumbleGain.gain.setValueAtTime(this.effectsVolume * 0.15, now);
     rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 2);
     
     rumbleOsc.connect(rumbleGain);
@@ -825,7 +855,7 @@ class SoundManager {
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(1500, now);
     
-    gain.gain.setValueAtTime(this.volume * 0.5, now);
+    gain.gain.setValueAtTime(this.effectsVolume * 0.5, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
     
     osc.connect(filter);
@@ -852,7 +882,7 @@ class SoundManager {
     osc.frequency.setValueAtTime(1200, now);
     osc2.frequency.setValueAtTime(600, now);
     
-    gain.gain.setValueAtTime(this.volume * 0.2, now);
+    gain.gain.setValueAtTime(this.effectsVolume * 0.2, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
     
     osc.connect(gain);
@@ -890,7 +920,7 @@ class SoundManager {
     noiseFilter.Q.setValueAtTime(5, now);
     
     noiseGain.gain.setValueAtTime(0, now);
-    noiseGain.gain.linearRampToValueAtTime(this.volume * 0.15, now + 0.2);
+    noiseGain.gain.linearRampToValueAtTime(this.effectsVolume * 0.15, now + 0.2);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 2);
     
     noiseSource.connect(noiseFilter);
@@ -916,7 +946,7 @@ class SoundManager {
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(freq, now + i * 0.15);
       
-      gain.gain.setValueAtTime(this.volume * 0.2, now + i * 0.15);
+      gain.gain.setValueAtTime(this.effectsVolume * 0.2, now + i * 0.15);
       gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.2);
       
       osc.connect(gain);
@@ -946,7 +976,7 @@ class SoundManager {
     osc.frequency.exponentialRampToValueAtTime(2500, now + 0.1);
     osc2.frequency.exponentialRampToValueAtTime(3000, now + 0.1);
     
-    gain.gain.setValueAtTime(this.volume * 0.15, now);
+    gain.gain.setValueAtTime(this.effectsVolume * 0.15, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
     
     osc.connect(gain);
@@ -998,7 +1028,7 @@ class SoundManager {
   }
 
   setVolume(volume: number) {
-    this.volume = Math.max(0, Math.min(1, volume));
+    this.effectsVolume = Math.max(0, Math.min(1, volume));
   }
 }
 
