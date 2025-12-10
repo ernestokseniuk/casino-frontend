@@ -50,13 +50,15 @@ class SoundManager {
   }
 
   // Start background hip-hop music from URL
-  startBackgroundMusic() {
+  startBackgroundMusic(lipkoMode: boolean = false) {
     if (this.isBackgroundPlaying || !this.enabled) return;
     this.isBackgroundPlaying = true;
     
-    // Use a chill lo-fi hip hop beat (royalty free)
-    // Using a public domain / creative commons beat
-    const musicUrl = 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3';
+    // Use a chill lo-fi hip hop beat (royalty free) or Romuald Lipko / Czerwone Gitary
+    // For Lipko Mode, using Czerwone Gitary style rock music
+    const musicUrl = lipkoMode 
+      ? 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_b940cdb5eb.mp3?filename=rock-guitar-music-133345.mp3'
+      : 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3';
     
     this.backgroundAudio = new Audio(musicUrl);
     this.backgroundAudio.loop = true;

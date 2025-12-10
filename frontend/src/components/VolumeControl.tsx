@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import soundManager from '../utils/sounds';
 import { useADHD } from '../context/ADHDContext';
+import { useLipko } from '../context/LipkoContext';
 import './VolumeControl.css';
 
 export function VolumeControl() {
@@ -8,6 +9,7 @@ export function VolumeControl() {
   const [effectsVolume, setEffectsVolume] = useState(soundManager.getEffectsVolume() * 100);
   const [isOpen, setIsOpen] = useState(false);
   const { adhdMode, setAdhdMode } = useADHD();
+  const { lipkoMode, setLipkoMode } = useLipko();
 
   useEffect(() => {
     soundManager.setMusicVolume(musicVolume / 100);
@@ -46,6 +48,20 @@ export function VolumeControl() {
               </div>
             </label>
             {adhdMode && <span className="adhd-hint">Subway Surfers during spin!</span>}
+          </div>
+
+          <div className="adhd-toggle">
+            <label className="adhd-label">
+              <span className="adhd-icon">🎸🔴</span>
+              <span className="adhd-text">Romuald Lipko Mode</span>
+              <div 
+                className={`toggle-switch ${lipkoMode ? 'active' : ''}`}
+                onClick={() => setLipkoMode(!lipkoMode)}
+              >
+                <div className="toggle-slider"></div>
+              </div>
+            </label>
+            {lipkoMode && <span className="adhd-hint">Czerwone Gitary Edition!</span>}
           </div>
           
           <div className="volume-slider">

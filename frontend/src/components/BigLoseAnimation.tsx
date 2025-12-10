@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useLipko } from '../context/LipkoContext';
 import './BigLoseAnimation.css';
 
 interface BigLoseAnimationProps {
@@ -17,6 +18,7 @@ interface FallingChip {
 const CHIP_COLORS = ['#555', '#666', '#777', '#888'];
 
 export function BigLoseAnimation({ amount, onComplete }: BigLoseAnimationProps) {
+  const { lipkoMode } = useLipko();
   const [chips, setChips] = useState<FallingChip[]>([]);
   const [showContent, setShowContent] = useState(false);
   const onCompleteRef = useRef(onComplete);
@@ -31,7 +33,7 @@ export function BigLoseAnimation({ amount, onComplete }: BigLoseAnimationProps) 
         x: Math.random() * 100,
         delay: Math.random() * 0.3,
         rotation: Math.random() * 360,
-        color: CHIP_COLORS[Math.floor(Math.random() * CHIP_COLORS.length)],
+        color: lipkoMode ? '#8b0000' : CHIP_COLORS[Math.floor(Math.random() * CHIP_COLORS.length)],
       });
     }
     setChips(newChips);
@@ -61,7 +63,7 @@ export function BigLoseAnimation({ amount, onComplete }: BigLoseAnimationProps) 
             '--chip-color': chip.color,
           } as React.CSSProperties}
         >
-          <div className="chip-face">💀</div>
+          <div className="chip-face">{lipkoMode ? '🎸' : '💀'}</div>
         </div>
       ))}
 

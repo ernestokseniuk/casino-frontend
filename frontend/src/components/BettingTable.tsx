@@ -29,7 +29,7 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
   const [error, setError] = useState<string | null>(null);
   const { adhdMode } = useADHD();
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
-  const iframeLoadedRef = useRef(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const canBet = gameState?.status === 'BETTING_OPEN';
   const showSubwaySurfers = adhdMode && (gameState?.status === 'BETTING_CLOSED' || gameState?.status === 'SPINNING');
@@ -47,12 +47,16 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
     }
   }, [adhdMode, portalContainer]);
 
-  // Mark iframe as loaded when ADHD mode is enabled
+  // Control mute/unmute via YouTube postMessage API
   useEffect(() => {
-    if (adhdMode) {
-      iframeLoadedRef.current = true;
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const command = showSubwaySurfers ? 'unMute' : 'mute';
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func: command }),
+        '*'
+      );
     }
-  }, [adhdMode]);
+  }, [showSubwaySurfers]);
 
   const placeBet = useCallback(async (betType: BetType, betValue: string) => {
     if (!canBet || loading) return;
@@ -112,10 +116,12 @@ export function BettingTable({ gameState, currentBets, onBetPlaced, onBetCancell
   const chipAmounts = [1, 5, 10, 25, 50, 100, 500];
 
   // Persistent Subway Surfers Portal - always rendered when ADHD mode is on
+  // Mute when hidden, unmute when visible
   const subwaySurfersPortal = adhdMode && portalContainer ? createPortal(
     <div className={`subway-surfers-portal-content ${showSubwaySurfers ? 'visible' : 'hidden'}`}>
       <iframe
-        src="https://www.youtube.com/embed/zZ7AimPACzc?autoplay=1&mute=0&start=60&controls=0&loop=1&playlist=zZ7AimPACzc"
+        ref={iframeRef}
+        src="https://www.youtube.com/embed/zZ7AimPACzc?autoplay=1&mute=1&start=60&controls=0&loop=1&playlist=zZ7AimPACzc&enablejsapi=1"
         title="Subway Surfers Gameplay"
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLipko } from '../context/LipkoContext';
 import useGameSocket from '../hooks/useGameSocket';
 import api from '../services/api';
 import type { Bet } from '../types/index';
@@ -17,6 +18,7 @@ import './GamePage.css';
 
 export function GamePage() {
   const { isAuthenticated, username, logout, loading: authLoading } = useAuth();
+  const { lipkoMode } = useLipko();
   const { gameState, chatMessages, betResults, connected, error: wsError, reconnect } = useGameSocket();
   
   const [balance, setBalance] = useState(0);
@@ -33,7 +35,7 @@ export function GamePage() {
   // Start background music and ambient sounds on mount
   useEffect(() => {
     // Start background music
-    soundManager.startBackgroundMusic();
+    soundManager.startBackgroundMusic(lipkoMode);
     
     // Random ambient casino sounds every 3-8 seconds
     ambientIntervalRef.current = setInterval(() => {
@@ -48,7 +50,7 @@ export function GamePage() {
         clearInterval(ambientIntervalRef.current);
       }
     };
-  }, []);
+  }, [lipkoMode]); // Restart music when lipkoMode changes
 
   const loadBalance = useCallback(async () => {
     if (!isAuthenticated) return;

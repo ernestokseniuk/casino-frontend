@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useLipko } from '../context/LipkoContext';
 import './BigWinAnimation.css';
 
 interface BigWinAnimationProps {
@@ -28,6 +29,7 @@ interface Sparkle {
 const CHIP_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'];
 
 export function BigWinAnimation({ amount, onComplete }: BigWinAnimationProps) {
+  const { lipkoMode } = useLipko();
   const [chips, setChips] = useState<Chip[]>([]);
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
   const [showAmount, setShowAmount] = useState(false);
@@ -46,7 +48,7 @@ export function BigWinAnimation({ amount, onComplete }: BigWinAnimationProps) {
         y: -20 - Math.random() * 50,
         rotation: Math.random() * 720 - 360,
         scale: 0.5 + Math.random() * 1,
-        color: CHIP_COLORS[Math.floor(Math.random() * CHIP_COLORS.length)],
+        color: lipkoMode ? '#dc143c' : CHIP_COLORS[Math.floor(Math.random() * CHIP_COLORS.length)],
         delay: Math.random() * 1.5,
         duration: 2 + Math.random() * 1.5,
       });
